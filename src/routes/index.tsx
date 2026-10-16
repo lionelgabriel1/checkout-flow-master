@@ -156,11 +156,11 @@ function Checkout() {
               <p className="text-xs opacity-90">Tempo restante para pagar</p>
             </div>
             <div className="divide-y text-center">
-              {[
+              {([
                 ["Entidade", ENTITY],
                 ["Referência", reference.replace(/(\d{3})(?=\d)/g, "$1 ")],
                 ["Valor", kz(total)],
-              ].map(([l, v]) => (
+              ] as [string, string][]).map(([l, v]) => (
                 <button key={l} onClick={() => copy(l, v.replace(/ /g, ""))} className="block w-full py-4 hover:bg-muted">
                   <p className="font-display text-2xl font-extrabold">{v}</p>
                   <p className="text-xs font-bold uppercase text-primary">{copied === l ? "Copiado!" : `${l} · toque para copiar`}</p>
