@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import bannerAsset from "@/assets/subway-cash.jpeg.asset.json";
 import iconAsset from "@/assets/icon.png.asset.json";
 import bumpAsset from "@/assets/3x.png.asset.json";
+import cardlessAsset from "@/assets/levantamento.jpeg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,7 +20,10 @@ export const Route = createFileRoute("/")({
 });
 
 const PRODUCT_PRICE = 9900;
-const BUMP_PRICE = 4900;
+const BUMPS = [
+  { id: "3x", img: bumpAsset.url, title: "3X — Acelere a sua evolução", price: 4900 },
+  { id: "cardless", img: cardlessAsset.url, title: "Levantamento sem cartão — guia completo", price: 2900 },
+];
 const ENTITY = "00123";
 const TIMER_SECONDS = 15 * 60;
 
@@ -30,26 +34,27 @@ type Step = "form" | "reference" | "paid" | "expired";
 
 function Checkout() {
   const [step, setStep] = useState<Step>("form");
-  const [bump, setBump] = useState(false);
+  const [bumps, setBumps] = useState<string[]>([]);
+  const [deadline, setDeadline] = useState(() => Date.now() + TIMER_SECONDS * 1000);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [reference, setReference] = useState("");
   const [left, setLeft] = useState(TIMER_SECONDS);
   const [copied, setCopied] = useState("");
 
-  const total = PRODUCT_PRICE + (bump ? BUMP_PRICE : 0);
+  const chosen = BUMPS.filter((b) => bumps.includes(b.id));
+  const total = PRODUCT_PRICE + chosen.reduce((a, b) => a + b.price, 0);
   const valid = form.name.trim().length > 2 && /\S+@\S+\.\S+/.test(form.email) && form.phone.replace(/\D/g, "").length >= 9;
 
   // 15-min countdown
   useEffect(() => {
-    if (step !== "reference") return;
-    const deadline = Date.now() + TIMER_SECONDS * 1000;
+    if (step === "paid" || step === "expired") return;
     const t = setInterval(() => {
       const s = Math.max(0, Math.round((deadline - Date.now()) / 1000));
       setLeft(s);
       if (s === 0) setStep("expired");
     }, 1000);
     return () => clearInterval(t);
-  }, [step, reference]);
+  }, [step, deadline]);
 
   // Payment confirmation polling (replace checkPayment with your gateway call)
   useEffect(() => {
@@ -64,7 +69,10 @@ function Checkout() {
     const ref = String(Math.floor(100000000 + Math.random() * 900000000));
     localStorage.removeItem(`paid:${ref}`);
     setReference(ref);
-    setLeft(TIMER_SECONDS);
+    if (step === "expired") {
+      setDeadline(Date.now() + TIMER_SECONDS * 1000);
+      setLeft(TIMER_SECONDS);
+    }
     setStep("reference");
   };
 
@@ -81,6 +89,11 @@ function Checkout() {
 
   return (
     <main className="min-h-screen pb-16">
+      {(step === "form" || step === "reference") && (
+        <div className="sticky top-0 z-10 bg-primary py-2 text-center text-sm font-bold text-primary-foreground">
+          ⏱ {step === "form" ? "Oferta reservada por" : "Pague a referência em"} <span className="font-display tabular-nums">{mmss}</span>
+        </div>
+      )}
       <img src={bannerAsset.url} alt="Subway Cash" className="mx-auto w-full max-w-xl object-contain" />
 
       <div className="mx-auto -mt-4 max-w-xl space-y-4 px-4">
@@ -114,25 +127,31 @@ function Checkout() {
               ))}
             </section>
 
-            <button
-              type="button"
-              onClick={() => setBump(!bump)}
-              className={`flex w-full items-center gap-4 rounded-2xl border-2 border-dashed p-4 text-left transition ${bump ? "border-gold bg-gold-surface text-gold" : "border-primary bg-card"}`}
-            >
-              <img src={bumpAsset.url} alt="3X" className="h-20 w-20 rounded-lg" />
-              <div className="flex-1">
-                <p className="text-xs font-bold uppercase tracking-wider">Oferta única</p>
-                <p className="font-display font-extrabold">3X — Acelere a sua evolução</p>
-                <p className="text-sm opacity-80">Adicione por apenas {kz(BUMP_PRICE)}</p>
-              </div>
-              <span className={`flex h-6 w-6 items-center justify-center rounded border-2 ${bump ? "border-gold bg-gold text-gold-surface" : "border-primary"}`}>
-                {bump && "✓"}
-              </span>
-            </button>
+            {BUMPS.map((bp) => {
+              const on = bumps.includes(bp.id);
+              return (
+                <button
+                  key={bp.id}
+                  type="button"
+                  onClick={() => setBumps(on ? bumps.filter((x) => x !== bp.id) : [...bumps, bp.id])}
+                  className={`flex w-full items-center gap-4 rounded-2xl border-2 border-dashed p-4 text-left transition ${on ? "border-gold bg-gold-surface text-gold" : "border-primary bg-card"}`}
+                >
+                  <img src={bp.img} alt="" className="h-20 w-20 rounded-lg object-cover" />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold uppercase tracking-wider">Oferta única</p>
+                    <p className="font-display font-extrabold">{bp.title}</p>
+                    <p className="text-sm opacity-80">Adicione por apenas {kz(bp.price)}</p>
+                  </div>
+                  <span className={`flex h-6 w-6 items-center justify-center rounded border-2 ${on ? "border-gold bg-gold text-gold-surface" : "border-primary"}`}>
+                    {on && "✓"}
+                  </span>
+                </button>
+              );
+            })}
 
             <section className="rounded-2xl border bg-card p-5 shadow-sm">
               <div className="flex justify-between text-sm"><span>Subway Cash</span><span>{kz(PRODUCT_PRICE)}</span></div>
-              {bump && <div className="mt-1 flex justify-between text-sm"><span>3X</span><span>{kz(BUMP_PRICE)}</span></div>}
+              {chosen.map((c) => <div key={c.id} className="mt-1 flex justify-between text-sm"><span>{c.title.split(" —")[0]}</span><span>{kz(c.price)}</span></div>)}
               <div className="mt-3 flex justify-between border-t pt-3 font-display text-lg font-extrabold">
                 <span>Total</span><span className="text-primary">{kz(total)}</span>
               </div>
@@ -143,6 +162,9 @@ function Checkout() {
               >
                 Gerar referência de pagamento
               </button>
+              <div className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-success/10 py-2 text-sm font-bold text-success">
+                🔒 Compra 100% segura · Dados protegidos
+              </div>
               <p className="mt-2 text-center text-xs text-muted-foreground">Pague no Multicaixa Express, ATM ou Internet Banking</p>
             </section>
           </>
