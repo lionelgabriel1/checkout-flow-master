@@ -154,8 +154,8 @@
   --color-success-foreground: var(--success-foreground);
   --color-gold-surface: var(--gold-surface);
   --color-gold: var(--gold);
-  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
-  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 @layer base {
