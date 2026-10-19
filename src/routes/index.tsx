@@ -57,7 +57,6 @@ function Checkout() {
   const [step, setStep] = useState<Step>("form");
   const [bumps, setBumps] = useState<string[]>([]);
   const [form, setForm] = useState({ name: "", phone: "" });
-  const [reference, setReference] = useState("");
   const [copied, setCopied] = useState("");
   const chosen = BUMPS.filter((b) => bumps.includes(b.id));
   const total = PRODUCT_PRICE + chosen.reduce((a, b) => a + b.price, 0);
@@ -65,7 +64,6 @@ function Checkout() {
 
   const generate = () => {
     (window as any).fbq?.("track", "InitiateCheckout", { value: total, currency: "AOA" });
-    setReference(PAYMENT_REFERENCE);
     setStep("reference");
   };
 
