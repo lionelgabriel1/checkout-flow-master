@@ -144,12 +144,11 @@ function Checkout() {
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/10 text-xl">↗</div>
             <div className="min-w-0 flex-1">
               <p className="font-bold">{demoActivity.name}</p>
-              <p className="text-sm text-muted-foreground">Exemplo de levantamento</p>
+            
               <p className="font-display text-lg font-extrabold text-primary">
                 {kz(demoActivity.amount)}
               </p>
-              <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Demonstração · não é uma transação real
+            
               </p>
             </div>
           </div>
