@@ -85,11 +85,11 @@ function Checkout() {
   return (
     <main className="min-h-screen bg-black pb-16 text-white">
       <div className="sticky top-0 z-20 bg-red-600 py-2 text-center text-sm font-extrabold text-white shadow-lg">⏱ OFERTA POR TEMPO LIMITADO · {mmss}</div>
-      <img src="/foto_do_produto" alt="Subway Cash" className="mx-auto w-full max-w-xl object-contain" />
+      <img src="/images/1789096402237.jpeg" alt="Capa Subway Cash" className="mx-auto w-full max-w-xl object-contain" />
 
       <div className="mx-auto -mt-4 max-w-xl space-y-4 px-4">
         <section className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-sm">
-          <img src="/images/1789096402237.jpeg" alt="" className="h-16 w-16 rounded-xl object-cover" />
+          <img src="/foto_do_produto" alt="Produto Subway Cash" className="h-16 w-16 rounded-xl object-cover" />
           <div className="flex-1">
             <h1 className="font-display text-xl font-extrabold">Subway Cash</h1>
             <p className="text-sm text-muted-foreground">Acesso imediato após confirmação</p>
