@@ -19,12 +19,14 @@ export const Route = createFileRoute("/")({
   component: Checkout,
 });
 
-const PRODUCT_PRICE = 9900;
+const PRODUCT_PRICE = 5000;
 const BUMPS = [
-  { id: "3x", img: bumpAsset.url, title: "3X — Acelere a sua evolução", price: 4900 },
-  { id: "cardless", img: cardlessAsset.url, title: "Levantamento sem cartão — guia completo", price: 2900 },
+  { id: "3x", img: bumpAsset.url, title: "3X — Acelere a sua evolução", price: 2450 },
+  { id: "cardless", img: cardlessAsset.url, title: "Levantamento sem cartão — guia completo", price: 2550 },
 ];
-const ENTITY = "00123";
+const ENTITY = "10116";
+const PAYMENT_REFERENCE = "928581499";
+const WHATSAPP_NUMBER = "244928581499";
 const TIMER_SECONDS = 15 * 60;
 
 const kz = (v: number) =>
@@ -56,19 +58,8 @@ function Checkout() {
     return () => clearInterval(t);
   }, [step, deadline]);
 
-  // Payment confirmation polling (replace checkPayment with your gateway call)
-  useEffect(() => {
-    if (step !== "reference") return;
-    const t = setInterval(async () => {
-      if (await checkPayment(reference)) setStep("paid");
-    }, 5000);
-    return () => clearInterval(t);
-  }, [step, reference]);
-
   const generate = () => {
-    const ref = String(Math.floor(100000000 + Math.random() * 900000000));
-    localStorage.removeItem(`paid:${ref}`);
-    setReference(ref);
+    setReference(PAYMENT_REFERENCE);
     if (step === "expired") {
       setDeadline(Date.now() + TIMER_SECONDS * 1000);
       setLeft(TIMER_SECONDS);
@@ -175,12 +166,12 @@ function Checkout() {
             <div className="bg-primary p-4 text-center text-primary-foreground">
               <p className="text-xs font-bold uppercase tracking-widest">Pagamento por referência</p>
               <p className="mt-1 font-display text-4xl font-extrabold tabular-nums">{mmss}</p>
-              <p className="text-xs opacity-90">Tempo restante para pagar</p>
+              <p className="text-xs opacity-90">Tempo restante desta sessão</p>
             </div>
             <div className="divide-y text-center">
               {([
                 ["Entidade", ENTITY],
-                ["Referência", reference.replace(/(\d{3})(?=\d)/g, "$1 ")],
+                ["Referência", PAYMENT_REFERENCE.replace(/(\d{3})(?=\d)/g, "$1 ")],
                 ["Valor", kz(total)],
               ] as [string, string][]).map(([l, v]) => (
                 <button key={l} onClick={() => copy(l, v.replace(/ /g, ""))} className="block w-full py-4 hover:bg-muted">
@@ -191,16 +182,19 @@ function Checkout() {
             </div>
             <div className="flex items-center justify-center gap-2 bg-muted p-4 text-sm text-muted-foreground">
               <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-              A aguardar confirmação do pagamento...
+              A aguardar confirmação manual do pagamento.
             </div>
-            {import.meta.env.DEV && (
-              <button
-                onClick={() => localStorage.setItem(`paid:${reference}`, "1")}
-                className="w-full border-t py-2 text-xs text-muted-foreground hover:bg-muted"
+            <div className="space-y-3 p-4">
+              <p className="text-sm text-muted-foreground">Depois de pagar, envia o comprovativo ao suporte pelo WhatsApp. Anexa a imagem directamente na conversa antes de enviar a mensagem.</p>
+              <a
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Olá! Fiz o pagamento do Subway Cash. Nome: ${form.name}. E-mail: ${form.email}. Telefone: ${form.phone}. Valor pago: ${kz(total)}. Entidade: ${ENTITY}. Referência: ${PAYMENT_REFERENCE}. Vou anexar o comprovativo nesta conversa.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-center rounded-xl bg-[#25D366] px-4 py-4 text-center font-display font-extrabold text-white shadow-lg transition hover:brightness-95"
               >
-                (teste) Simular pagamento recebido
-              </button>
-            )}
+                Enviar comprovativo pelo WhatsApp
+              </a>
+            </div>
           </section>
         )}
 
@@ -216,10 +210,10 @@ function Checkout() {
 
         {step === "expired" && (
           <section className="rounded-2xl border bg-card p-8 text-center shadow-sm">
-            <h2 className="font-display text-2xl font-extrabold">Referência expirada</h2>
-            <p className="mt-2 text-muted-foreground">O tempo de 15 minutos terminou.</p>
+            <h2 className="font-display text-2xl font-extrabold">Sessão terminada</h2>
+            <p className="mt-2 text-muted-foreground">O tempo de 15 minutos terminou. A tua referência fixa pode continuar válida; podes voltar à página de pagamento para consultar os dados e contactar o suporte.</p>
             <button onClick={generate} className="mt-4 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground">
-              Gerar nova referência
+              Voltar ao pagamento
             </button>
           </section>
         )}
@@ -228,7 +222,3 @@ function Checkout() {
   );
 }
 
-// TODO: substituir por chamada real ao gateway (ex: ProxyPay / EMIS) quando houver credenciais.
-async function checkPayment(reference: string): Promise<boolean> {
-  return localStorage.getItem(`paid:${reference}`) === "1";
-}
