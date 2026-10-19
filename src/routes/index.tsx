@@ -1,9 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import bannerAsset from "@/assets/subway-cash.jpeg.asset.json";
-import iconAsset from "@/assets/icon.png.asset.json";
-import bumpAsset from "@/assets/3x.png.asset.json";
-import cardlessAsset from "@/assets/levantamento.jpeg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,20 +17,13 @@ export const Route = createFileRoute("/")({
 
 const PRODUCT_PRICE = 5000;
 const BUMPS = [
-  { id: "3x", img: bumpAsset.url, title: "3X — Acelere a sua evolução", price: 2450 },
-  { id: "cardless", img: cardlessAsset.url, title: "Levantamento sem cartão — guia completo", price: 2550 },
+  { id: "3x", img: "/images/3x.png", title: "3X — Acelere a sua evolução", price: 2450 },
+  { id: "cardless", img: "/images/levantamento.jpeg", title: "Levantamento sem cartão — guia completo", price: 2550 },
 ];
 const ENTITY = "10116";
 const PAYMENT_REFERENCE = "928581499";
 const WHATSAPP_NUMBER = "244928581499";
 const TIMER_SECONDS = 15 * 60;
-
-const DEMO_BUYERS = [
-  "Mateus António", "Ana Domingos", "Paulo Manuel", "Carla Joaquim",
-  "José Miguel", "Marta Francisco", "Daniel Sebastião", "Sandra Afonso",
-  "Edson Miguel", "Teresa Paulo", "Nelson André", "Isabel Manuel",
-];
-type DemoActivity = { name: string; amount: number };
 
 const kz = (v: number) =>
   v.toLocaleString("pt-AO", { minimumFractionDigits: 2 }) + " Kz";
@@ -73,24 +62,6 @@ function Checkout() {
   const [reference, setReference] = useState("");
   const [left, setLeft] = useState(TIMER_SECONDS);
   const [copied, setCopied] = useState("");
-  const [demoActivity, setDemoActivity] = useState<DemoActivity | null>(null);
-
-  // Notificações ilustrativas: identificadas claramente como demonstração.
-  useEffect(() => {
-    const showDemoActivity = () => {
-      const name = DEMO_BUYERS[Math.floor(Math.random() * DEMO_BUYERS.length)];
-      const amount = (115000 + Math.floor(Math.random() * 20) * 5000);
-      setDemoActivity({ name, amount });
-      window.setTimeout(() => setDemoActivity(null), 6500);
-    };
-    const first = window.setTimeout(showDemoActivity, 5000);
-    const interval = window.setInterval(showDemoActivity, 15000);
-    return () => {
-      window.clearTimeout(first);
-      window.clearInterval(interval);
-    };
-  }, []);
-
   const chosen = BUMPS.filter((b) => bumps.includes(b.id));
   const total = PRODUCT_PRICE + chosen.reduce((a, b) => a + b.price, 0);
   const valid = form.name.trim().length > 2 && /\S+@\S+\.\S+/.test(form.email) && form.phone.replace(/\D/g, "").length >= 9;
@@ -134,31 +105,11 @@ function Checkout() {
           ⏱ {step === "form" ? "Oferta reservada por" : "Pague a referência em"} <span className="font-display tabular-nums">{mmss}</span>
         </div>
       )}
-      {demoActivity && (step === "form" || step === "reference") && (
-        <aside
-          role="status"
-          aria-live="polite"
-          className="fixed bottom-4 left-4 z-20 w-[calc(100%-2rem)] max-w-sm animate-in slide-in-from-bottom-3 rounded-xl border bg-card p-4 shadow-xl"
-        >
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/10 text-xl">↗</div>
-            <div className="min-w-0 flex-1">
-              <p className="font-bold">{demoActivity.name}</p>
-            
-              <p className="font-display text-lg font-extrabold text-primary">
-                {kz(demoActivity.amount)}
-              </p>
-            
-              </p>
-            </div>
-          </div>
-        </aside>
-      )}
-      <img src={bannerAsset.url} alt="Subway Cash" className="mx-auto w-full max-w-xl object-contain" />
+      <img src="/images/subway-cash.jpeg" alt="Subway Cash" className="mx-auto w-full max-w-xl object-contain" />
 
       <div className="mx-auto -mt-4 max-w-xl space-y-4 px-4">
         <section className="flex items-center gap-4 rounded-2xl border bg-card p-4 shadow-sm">
-          <img src={iconAsset.url} alt="" className="h-16 w-16 rounded-xl" />
+          <img src="/images/icon.png" alt="" className="h-16 w-16 rounded-xl" />
           <div className="flex-1">
             <h1 className="font-display text-xl font-extrabold">Subway Cash</h1>
             <p className="text-sm text-muted-foreground">Acesso imediato após confirmação</p>
