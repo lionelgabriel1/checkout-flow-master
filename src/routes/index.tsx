@@ -181,6 +181,10 @@ function Checkout() {
               <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
               A aguardar confirmação do pagamento.
             </div>
+            <div className="mx-4 mt-3 flex items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-center text-sm font-bold text-emerald-400">
+              <span aria-hidden="true">✓</span>
+              Saque liberado após a confirmação do pagamento
+            </div>
             <div className="p-4">
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}
