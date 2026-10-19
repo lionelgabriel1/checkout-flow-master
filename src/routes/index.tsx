@@ -35,6 +35,30 @@ const kz = (v: number) =>
 type Step = "form" | "reference" | "paid" | "expired";
 
 function Checkout() {
+  useEffect(() => {
+    const w = window as any;
+    if (w.fbq) return;
+
+    const fbq: any = function (...args: any[]) {
+      if (fbq.callMethod) fbq.callMethod.apply(fbq, args);
+      else fbq.queue.push(args);
+    };
+    w.fbq = fbq;
+    if (!w._fbq) w._fbq = fbq;
+    fbq.push = fbq;
+    fbq.loaded = true;
+    fbq.version = "2.0";
+    fbq.queue = [];
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://connect.facebook.net/en_US/fbevents.js";
+    document.head.appendChild(script);
+
+    fbq("init", "1117060627478676");
+    fbq("track", "PageView");
+  }, []);
+
   const [step, setStep] = useState<Step>("form");
   const [bumps, setBumps] = useState<string[]>([]);
   const [deadline, setDeadline] = useState(() => Date.now() + TIMER_SECONDS * 1000);
@@ -59,6 +83,7 @@ function Checkout() {
   }, [step, deadline]);
 
   const generate = () => {
+    (window as any).fbq?.("track", "InitiateCheckout", { value: total, currency: "AOA" });
     setReference(PAYMENT_REFERENCE);
     if (step === "expired") {
       setDeadline(Date.now() + TIMER_SECONDS * 1000);
