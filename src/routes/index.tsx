@@ -29,6 +29,13 @@ const PAYMENT_REFERENCE = "928581499";
 const WHATSAPP_NUMBER = "244928581499";
 const TIMER_SECONDS = 15 * 60;
 
+const DEMO_BUYERS = [
+  "Mateus António", "Ana Domingos", "Paulo Manuel", "Carla Joaquim",
+  "José Miguel", "Marta Francisco", "Daniel Sebastião", "Sandra Afonso",
+  "Edson Miguel", "Teresa Paulo", "Nelson André", "Isabel Manuel",
+];
+type DemoActivity = { name: string; amount: number };
+
 const kz = (v: number) =>
   v.toLocaleString("pt-AO", { minimumFractionDigits: 2 }) + " Kz";
 
@@ -66,6 +73,23 @@ function Checkout() {
   const [reference, setReference] = useState("");
   const [left, setLeft] = useState(TIMER_SECONDS);
   const [copied, setCopied] = useState("");
+  const [demoActivity, setDemoActivity] = useState<DemoActivity | null>(null);
+
+  // Notificações ilustrativas: identificadas claramente como demonstração.
+  useEffect(() => {
+    const showDemoActivity = () => {
+      const name = DEMO_BUYERS[Math.floor(Math.random() * DEMO_BUYERS.length)];
+      const amount = (115000 + Math.floor(Math.random() * 20) * 5000);
+      setDemoActivity({ name, amount });
+      window.setTimeout(() => setDemoActivity(null), 6500);
+    };
+    const first = window.setTimeout(showDemoActivity, 5000);
+    const interval = window.setInterval(showDemoActivity, 15000);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(interval);
+    };
+  }, []);
 
   const chosen = BUMPS.filter((b) => bumps.includes(b.id));
   const total = PRODUCT_PRICE + chosen.reduce((a, b) => a + b.price, 0);
@@ -109,6 +133,27 @@ function Checkout() {
         <div className="sticky top-0 z-10 bg-primary py-2 text-center text-sm font-bold text-primary-foreground">
           ⏱ {step === "form" ? "Oferta reservada por" : "Pague a referência em"} <span className="font-display tabular-nums">{mmss}</span>
         </div>
+      )}
+      {demoActivity && (step === "form" || step === "reference") && (
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-4 left-4 z-20 w-[calc(100%-2rem)] max-w-sm animate-in slide-in-from-bottom-3 rounded-xl border bg-card p-4 shadow-xl"
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/10 text-xl">↗</div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">{demoActivity.name}</p>
+              <p className="text-sm text-muted-foreground">Exemplo de levantamento</p>
+              <p className="font-display text-lg font-extrabold text-primary">
+                {kz(demoActivity.amount)}
+              </p>
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Demonstração · não é uma transação real
+              </p>
+            </div>
+          </div>
+        </aside>
       )}
       <img src={bannerAsset.url} alt="Subway Cash" className="mx-auto w-full max-w-xl object-contain" />
 
