@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -7,7 +7,7 @@ export const Route = createFileRoute("/")({
       { title: "Checkout Subway Cash — Pagamento por Referência" },
       { name: "description", content: "Compre o Subway Cash e pague por referência no Multicaixa Express ou ATM." },
       { property: "og:title", content: "Checkout Subway Cash" },
-      { property: "og:description", content: "Pague por referência em 15 minutos e receba o acesso na hora." },
+      { property: "og:description", content: "Pague por referência e receba o acesso após confirmação." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -23,12 +23,11 @@ const BUMPS = [
 const ENTITY = "10116";
 const PAYMENT_REFERENCE = "928581499";
 const WHATSAPP_NUMBER = "244928581499";
-const TIMER_SECONDS = 15 * 60;
 
 const kz = (v: number) =>
   v.toLocaleString("pt-AO", { minimumFractionDigits: 2 }) + " Kz";
 
-type Step = "form" | "reference" | "paid" | "expired";
+type Step = "form" | "reference" | "paid";
 
 function Checkout() {
   useEffect(() => {
@@ -57,33 +56,16 @@ function Checkout() {
 
   const [step, setStep] = useState<Step>("form");
   const [bumps, setBumps] = useState<string[]>([]);
-  const [deadline, setDeadline] = useState(() => Date.now() + TIMER_SECONDS * 1000);
-  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [form, setForm] = useState({ name: "", phone: "" });
   const [reference, setReference] = useState("");
-  const [left, setLeft] = useState(TIMER_SECONDS);
   const [copied, setCopied] = useState("");
   const chosen = BUMPS.filter((b) => bumps.includes(b.id));
   const total = PRODUCT_PRICE + chosen.reduce((a, b) => a + b.price, 0);
-  const valid = form.name.trim().length > 2 && /\S+@\S+\.\S+/.test(form.email) && form.phone.replace(/\D/g, "").length >= 9;
-
-  // 15-min countdown
-  useEffect(() => {
-    if (step === "paid" || step === "expired") return;
-    const t = setInterval(() => {
-      const s = Math.max(0, Math.round((deadline - Date.now()) / 1000));
-      setLeft(s);
-      if (s === 0) setStep("expired");
-    }, 1000);
-    return () => clearInterval(t);
-  }, [step, deadline]);
+  const valid = form.name.trim().length > 2 && form.phone.replace(/\D/g, "").length >= 9;
 
   const generate = () => {
     (window as any).fbq?.("track", "InitiateCheckout", { value: total, currency: "AOA" });
     setReference(PAYMENT_REFERENCE);
-    if (step === "expired") {
-      setDeadline(Date.now() + TIMER_SECONDS * 1000);
-      setLeft(TIMER_SECONDS);
-    }
     setStep("reference");
   };
 
@@ -93,18 +75,8 @@ function Checkout() {
     setTimeout(() => setCopied(""), 1500);
   };
 
-  const mmss = useMemo(
-    () => `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`,
-    [left],
-  );
-
   return (
     <main className="min-h-screen pb-16">
-      {(step === "form" || step === "reference") && (
-        <div className="sticky top-0 z-10 bg-primary py-2 text-center text-sm font-bold text-primary-foreground">
-          ⏱ {step === "form" ? "Oferta reservada por" : "Pague a referência em"} <span className="font-display tabular-nums">{mmss}</span>
-        </div>
-      )}
       <img src="/images/subway-cash.jpeg" alt="Subway Cash" className="mx-auto w-full max-w-xl object-contain" />
 
       <div className="mx-auto -mt-4 max-w-xl space-y-4 px-4">
@@ -123,7 +95,6 @@ function Checkout() {
               <h2 className="font-display text-lg font-bold">Os seus dados</h2>
               {([
                 ["name", "Nome completo", "text"],
-                ["email", "E-mail", "email"],
                 ["phone", "Telefone (9XX XXX XXX)", "tel"],
               ] as const).map(([k, label, type]) => (
                 <label key={k} className="block">
@@ -171,7 +142,7 @@ function Checkout() {
                 onClick={generate}
                 className="mt-4 w-full rounded-xl bg-primary py-4 font-display text-lg font-extrabold text-primary-foreground shadow-lg transition hover:brightness-110 disabled:opacity-40"
               >
-                Gerar referência de pagamento
+                Liberar agora
               </button>
               <div className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-success/10 py-2 text-sm font-bold text-success">
                 🔒 Compra 100% segura · Dados protegidos
@@ -185,8 +156,6 @@ function Checkout() {
           <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
             <div className="bg-primary p-4 text-center text-primary-foreground">
               <p className="text-xs font-bold uppercase tracking-widest">Pagamento por referência</p>
-              <p className="mt-1 font-display text-4xl font-extrabold tabular-nums">{mmss}</p>
-              <p className="text-xs opacity-90">Tempo restante desta sessão</p>
             </div>
             <div className="divide-y text-center">
               {([
@@ -207,7 +176,7 @@ function Checkout() {
             <div className="space-y-3 p-4">
               <p className="text-sm text-muted-foreground">Depois de pagar, envia o comprovativo ao suporte pelo WhatsApp. Anexa a imagem directamente na conversa antes de enviar a mensagem.</p>
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Olá! Fiz o pagamento do Subway Cash. Nome: ${form.name}. E-mail: ${form.email}. Telefone: ${form.phone}. Valor pago: ${kz(total)}. Entidade: ${ENTITY}. Referência: ${PAYMENT_REFERENCE}. Vou anexar o comprovativo nesta conversa.`)}`}
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Olá! Fiz o pagamento do Subway Cash. Nome: ${form.name}. Telefone: ${form.phone}. Valor pago: ${kz(total)}. Entidade: ${ENTITY}. Referência: ${PAYMENT_REFERENCE}. Vou anexar o comprovativo nesta conversa.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex w-full items-center justify-center rounded-xl bg-[#25D366] px-4 py-4 text-center font-display font-extrabold text-white shadow-lg transition hover:brightness-95"
@@ -223,20 +192,11 @@ function Checkout() {
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-success text-4xl text-success-foreground">✓</div>
             <h2 className="mt-4 font-display text-2xl font-extrabold">Pagamento confirmado!</h2>
             <p className="mt-2 text-muted-foreground">
-              Obrigado, {form.name.split(" ")[0]}. Enviámos o acesso para <b>{form.email}</b>.
+              Obrigado, {form.name.split(" ")[0]}. O pagamento foi confirmado.
             </p>
           </section>
         )}
 
-        {step === "expired" && (
-          <section className="rounded-2xl border bg-card p-8 text-center shadow-sm">
-            <h2 className="font-display text-2xl font-extrabold">Sessão terminada</h2>
-            <p className="mt-2 text-muted-foreground">O tempo de 15 minutos terminou. A tua referência fixa pode continuar válida; podes voltar à página de pagamento para consultar os dados e contactar o suporte.</p>
-            <button onClick={generate} className="mt-4 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground">
-              Voltar ao pagamento
-            </button>
-          </section>
-        )}
       </div>
     </main>
   );
