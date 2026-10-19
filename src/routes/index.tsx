@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,12 +17,13 @@ export const Route = createFileRoute("/")({
 
 const PRODUCT_PRICE = 5000;
 const BUMPS = [
-  { id: "3x", img: "/images/3x.png", title: "3X — Acelere a sua evolução", price: 2450 },
-  { id: "cardless", img: "/images/levantamento.jpeg", title: "Levantamento sem cartão — guia completo", price: 2550 },
+  { id: "3x", img: "/images/3x%20mais.png", title: "3X — Acelere a sua evolução", price: 2450 },
+  { id: "cardless", img: "/images/levantamento%20sem%20cartao.jpeg", title: "Levantamento sem cartão — guia completo", price: 2550 },
 ];
 const ENTITY = "10116";
 const PAYMENT_REFERENCE = "928581499";
 const WHATSAPP_NUMBER = "244928581499";
+const TIMER_SECONDS = 15 * 60;
 
 const kz = (v: number) =>
   v.toLocaleString("pt-AO", { minimumFractionDigits: 2 }) + " Kz";
@@ -57,10 +58,18 @@ function Checkout() {
   const [step, setStep] = useState<Step>("form");
   const [bumps, setBumps] = useState<string[]>([]);
   const [form, setForm] = useState({ name: "", phone: "" });
+  const [left, setLeft] = useState(TIMER_SECONDS);
   const [copied, setCopied] = useState("");
   const chosen = BUMPS.filter((b) => bumps.includes(b.id));
   const total = PRODUCT_PRICE + chosen.reduce((a, b) => a + b.price, 0);
   const valid = form.name.trim().length > 2 && form.phone.replace(/\D/g, "").length >= 9;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setLeft((current) => Math.max(0, current - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const mmss = useMemo(() => `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`, [left]);
 
   const generate = () => {
     (window as any).fbq?.("track", "InitiateCheckout", { value: total, currency: "AOA" });
@@ -74,12 +83,13 @@ function Checkout() {
   };
 
   return (
-    <main className="min-h-screen pb-16">
-      <img src="/images/subway-cash.jpeg" alt="Subway Cash" className="mx-auto w-full max-w-xl object-contain" />
+    <main className="min-h-screen bg-black pb-16 text-white">
+      <div className="sticky top-0 z-20 bg-red-600 py-2 text-center text-sm font-extrabold text-white shadow-lg">⏱ OFERTA POR TEMPO LIMITADO · {mmss}</div>
+      <img src="/foto_do_produto" alt="Subway Cash" className="mx-auto w-full max-w-xl object-contain" />
 
       <div className="mx-auto -mt-4 max-w-xl space-y-4 px-4">
-        <section className="flex items-center gap-4 rounded-2xl border bg-card p-4 shadow-sm">
-          <img src="/images/icon.png" alt="" className="h-16 w-16 rounded-xl" />
+        <section className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-sm">
+          <img src="/images/1789096402237.jpeg" alt="" className="h-16 w-16 rounded-xl object-cover" />
           <div className="flex-1">
             <h1 className="font-display text-xl font-extrabold">Subway Cash</h1>
             <p className="text-sm text-muted-foreground">Acesso imediato após confirmação</p>
@@ -89,7 +99,7 @@ function Checkout() {
 
         {step === "form" && (
           <>
-            <section className="space-y-3 rounded-2xl border bg-card p-5 shadow-sm">
+            <section className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950 p-5 shadow-sm">
               <h2 className="font-display text-lg font-bold">Os seus dados</h2>
               {([
                 ["name", "Nome completo", "text"],
@@ -101,7 +111,7 @@ function Checkout() {
                     type={type}
                     value={form[k]}
                     onChange={(e) => setForm({ ...form, [k]: e.target.value })}
-                    className="mt-1 w-full rounded-lg border bg-background px-3 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                    className="mt-1 w-full rounded-lg border bg-zinc-900 text-white px-3 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
                   />
                 </label>
               ))}
@@ -114,7 +124,7 @@ function Checkout() {
                   key={bp.id}
                   type="button"
                   onClick={() => setBumps(on ? bumps.filter((x) => x !== bp.id) : [...bumps, bp.id])}
-                  className={`flex w-full items-center gap-4 rounded-2xl border-2 border-dashed p-4 text-left transition ${on ? "border-gold bg-gold-surface text-gold" : "border-primary bg-card"}`}
+                  className={`flex w-full items-center gap-4 rounded-2xl border-2 border-dashed p-4 text-left transition ${on ? "border-gold bg-gold-surface text-gold" : "border-primary bg-zinc-950"}`}
                 >
                   <img src={bp.img} alt="" className="h-20 w-20 rounded-lg object-cover" />
                   <div className="flex-1">
@@ -129,7 +139,7 @@ function Checkout() {
               );
             })}
 
-            <section className="rounded-2xl border bg-card p-5 shadow-sm">
+            <section className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 shadow-sm">
               <div className="flex justify-between text-sm"><span>Subway Cash</span><span>{kz(PRODUCT_PRICE)}</span></div>
               {chosen.map((c) => <div key={c.id} className="mt-1 flex justify-between text-sm"><span>{c.title.split(" —")[0]}</span><span>{kz(c.price)}</span></div>)}
               <div className="mt-3 flex justify-between border-t pt-3 font-display text-lg font-extrabold">
@@ -151,7 +161,7 @@ function Checkout() {
         )}
 
         {step === "reference" && (
-          <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-sm">
             <div className="bg-primary p-4 text-center text-primary-foreground">
               <p className="text-xs font-bold uppercase tracking-widest">Pagamento por referência</p>
             </div>
@@ -186,7 +196,7 @@ function Checkout() {
         )}
 
         {step === "paid" && (
-          <section className="rounded-2xl border bg-card p-8 text-center shadow-sm">
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-950 p-8 text-center shadow-sm">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-success text-4xl text-success-foreground">✓</div>
             <h2 className="mt-4 font-display text-2xl font-extrabold">Pagamento confirmado!</h2>
             <p className="mt-2 text-muted-foreground">
