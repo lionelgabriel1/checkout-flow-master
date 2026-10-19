@@ -179,10 +179,10 @@ function Checkout() {
             </div>
             <div className="flex items-center justify-center gap-2 bg-muted p-4 text-sm text-muted-foreground">
               <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-              A aguardar confirmação manual do pagamento.
+              A aguardar confirmação do pagamento.
             </div>
             <div className="space-y-3 p-4">
-              <p className="text-sm text-muted-foreground">Depois de pagar, envia o comprovativo ao suporte pelo WhatsApp. Anexa a imagem directamente na conversa antes de enviar a mensagem.</p>
+              <p className="text-sm text-muted-foreground">Depois de pagar, envia o comprovativo ao suporte pelo WhatsApp: +244 928 581 499. Anexa a imagem directamente na conversa antes de enviar a mensagem.</p>
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Olá! Fiz o pagamento do Subway Cash. Nome: ${form.name}. Telefone: ${form.phone}. Valor pago: ${kz(total)}. Entidade: ${ENTITY}. Referência: ${PAYMENT_REFERENCE}. Vou anexar o comprovativo nesta conversa.`)}`}
                 target="_blank"
